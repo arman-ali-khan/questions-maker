@@ -2,12 +2,13 @@
 
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, GripVertical, Eye } from 'lucide-react'
+import { Plus, GripVertical, Eye, Move } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { Question, HeaderInfo, PageSettings } from '@/types/question-paper'
 import { MCQQuestionCard } from './MCQQuestionCard'
 import { WrittenQuestionCard } from './WrittenQuestionCard'
 import { QuestionPaperPreview } from './QuestionPaperPreview'
+import { useState } from 'react'
 
 interface QuestionTabsProps {
   activeTab: string
@@ -40,6 +41,8 @@ export function QuestionTabs({
   totalMarks,
   previewRef
 }: QuestionTabsProps) {
+  const [isDragMode, setIsDragMode] = useState(false)
+
   const getPageDimensions = () => {
     switch (pageSettings.page_size) {
       case 'A4':
@@ -87,7 +90,7 @@ export function QuestionTabs({
           <div>
             <h3 className="text-lg font-medium">Multiple Choice Questions</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Create MCQ questions with customizable column layouts for options
+              Create MCQ questions with customizable column layouts and line heights
             </p>
           </div>
           <Button onClick={addMCQQuestion} size="sm">
@@ -130,7 +133,7 @@ export function QuestionTabs({
           <div>
             <h3 className="text-lg font-medium">Written Questions</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Create long-answer and short-answer questions
+              Create long-answer and short-answer questions with line height options
             </p>
           </div>
           <Button onClick={addWrittenQuestion} size="sm">
@@ -254,9 +257,22 @@ export function QuestionTabs({
               See exactly how your question paper will look when printed
             </p>
           </div>
-          <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
-            <span className="font-medium">Total Questions:</span> {questions.length} | 
-            <span className="font-medium ml-2">Total Marks:</span> {totalMarks}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={isDragMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsDragMode(!isDragMode)}
+                disabled={questions.length === 0}
+              >
+                <Move className="h-4 w-4 mr-2" />
+                {isDragMode ? 'Exit Drag Mode' : 'Drag Mode'}
+              </Button>
+            </div>
+            <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+              <span className="font-medium">Total Questions:</span> {questions.length} | 
+              <span className="font-medium ml-2">Total Marks:</span> {totalMarks}
+            </div>
           </div>
         </div>
         
@@ -278,27 +294,73 @@ export function QuestionTabs({
           </div>
         ) : (
           <div className="bg-white border rounded-lg overflow-hidden shadow-lg">
-            <div 
-              ref={previewRef}
-              className="preview-content mx-auto bg-white"
-              style={{
-                width: getPageDimensions().width,
-                minHeight: getPageDimensions().height,
-                padding: `${pageSettings.margins.top}mm ${pageSettings.margins.right}mm ${pageSettings.margins.bottom}mm ${pageSettings.margins.left}mm`,
-                direction: pageSettings.language_direction === 'rtl' ? 'rtl' : 'ltr',
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '14px',
-                lineHeight: '1.6',
-                color: '#000',
-              }}
-            >
-              <QuestionPaperPreview 
-                headerInfo={headerInfo}
-                questions={questions}
-                title={title}
-                totalMarks={totalMarks}
-              />
-            </div>
+            {isDragMode && (
+              <div className="bg-blue-50 border-b border-blue-200 p-3">
+                <div className="flex items-center space-x-2 text-blue-700">
+                  <Move className="h-4 w-4" />
+                  <span className="text-sm font-medium">Drag Mode Active</span>
+                  <span className="text-xs">- Click and drag questions to reorder them in the preview</span>
+                </div>
+              </div>
+            )}
+            
+            {isDragMode ? (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="preview-questions">
+                  {(provided) => (
+                    <div 
+                      ref={previewRef}
+                      className="preview-content mx-auto bg-white"
+                      style={{
+                        width: getPageDimensions().width,
+                        minHeight: getPageDimensions().height,
+                        padding: `${pageSettings.margins.top}mm ${pageSettings.margins.right}mm ${pageSettings.margins.bottom}mm ${pageSettings.margins.left}mm`,
+                        direction: pageSettings.language_direction === 'rtl' ? 'rtl' : 'ltr',
+                        fontFamily: 'Arial, sans-serif',
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        color: '#000',
+                      }}
+                      {...provided.droppableProps}
+                    >
+                      <div ref={provided.innerRef}>
+                        <QuestionPaperPreview 
+                          headerInfo={headerInfo}
+                          questions={questions}
+                          title={title}
+                          totalMarks={totalMarks}
+                          isDragMode={true}
+                          onDragEnd={handleDragEnd}
+                        />
+                        {provided.placeholder}
+                      </div>
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            ) : (
+              <div 
+                ref={previewRef}
+                className="preview-content mx-auto bg-white"
+                style={{
+                  width: getPageDimensions().width,
+                  minHeight: getPageDimensions().height,
+                  padding: `${pageSettings.margins.top}mm ${pageSettings.margins.right}mm ${pageSettings.margins.bottom}mm ${pageSettings.margins.left}mm`,
+                  direction: pageSettings.language_direction === 'rtl' ? 'rtl' : 'ltr',
+                  fontFamily: 'Arial, sans-serif',
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  color: '#000',
+                }}
+              >
+                <QuestionPaperPreview 
+                  headerInfo={headerInfo}
+                  questions={questions}
+                  title={title}
+                  totalMarks={totalMarks}
+                />
+              </div>
+            )}
           </div>
         )}
       </TabsContent>

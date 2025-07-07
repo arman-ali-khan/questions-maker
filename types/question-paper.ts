@@ -7,6 +7,7 @@ export interface Question {
   marks: number
   order_index: number
   columns?: number // New field for MCQ column layout
+  lineHeight?: 'normal' | 'relaxed' | 'loose' // New field for line height
 }
 
 export interface HeaderInfo {

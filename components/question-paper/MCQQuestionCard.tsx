@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Circle, X, Columns } from 'lucide-react'
+import { Circle, X, Columns, LineChart } from 'lucide-react'
 import { Question } from '@/types/question-paper'
 
 interface MCQQuestionCardProps {
@@ -37,6 +37,19 @@ export function MCQQuestionCard({
     }
   }
 
+  const getLineHeightClass = (lineHeight: string) => {
+    switch (lineHeight) {
+      case 'normal':
+        return 'leading-normal'
+      case 'relaxed':
+        return 'leading-relaxed'
+      case 'loose':
+        return 'leading-loose'
+      default:
+        return 'leading-relaxed'
+    }
+  }
+
   return (
     <Card className="flex-1">
       <CardHeader>
@@ -52,7 +65,7 @@ export function MCQQuestionCard({
               onChange={(e) => onUpdate(question.id, { question_text: e.target.value })}
               placeholder="এখানে আপনার প্রশ্ন লিখুন..."
               rows={2}
-              className="question-textarea bangla-text"
+              className={`question-textarea bangla-text ${getLineHeightClass(question.lineHeight || 'relaxed')}`}
             />
           </div>
           <div className="flex items-center space-x-2 ml-4">
@@ -75,23 +88,45 @@ export function MCQQuestionCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Column Layout Selector */}
-          <div className="flex items-center space-x-3 pb-3 border-b border-gray-200">
-            <Columns className="h-4 w-4 text-gray-500" />
-            <Label className="text-sm font-medium">বিকল্প বিন্যাস:</Label>
-            <Select 
-              value={(question.columns || 1).toString()} 
-              onValueChange={(value) => onUpdate(question.id, { columns: parseInt(value) })}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">১ কলাম</SelectItem>
-                <SelectItem value="2">২ কলাম</SelectItem>
-                <SelectItem value="3">৩ কলাম</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Layout Controls */}
+          <div className="grid grid-cols-2 gap-3 pb-3 border-b border-gray-200">
+            {/* Column Layout Selector */}
+            <div className="flex items-center space-x-2">
+              <Columns className="h-4 w-4 text-gray-500" />
+              <Label className="text-sm font-medium">বিকল্প বিন্যাস:</Label>
+              <Select 
+                value={(question.columns || 1).toString()} 
+                onValueChange={(value) => onUpdate(question.id, { columns: parseInt(value) })}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">১ কলাম</SelectItem>
+                  <SelectItem value="2">২ কলাম</SelectItem>
+                  <SelectItem value="3">৩ কলাম</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Line Height Selector */}
+            <div className="flex items-center space-x-2">
+              <LineChart className="h-4 w-4 text-gray-500" />
+              <Label className="text-sm font-medium">লাইন উচ্চতা:</Label>
+              <Select 
+                value={question.lineHeight || 'relaxed'} 
+                onValueChange={(value) => onUpdate(question.id, { lineHeight: value as 'normal' | 'relaxed' | 'loose' })}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">সাধারণ</SelectItem>
+                  <SelectItem value="relaxed">মাঝারি</SelectItem>
+                  <SelectItem value="loose">প্রশস্ত</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Options Grid */}
@@ -120,7 +155,7 @@ export function MCQQuestionCard({
                     onUpdate(question.id, { options: newOptions })
                   }}
                   placeholder={`বিকল্প ${optionLabels[optionIndex]}`}
-                  className="w-full question-input bangla-text"
+                  className={`w-full question-input bangla-text ${getLineHeightClass(question.lineHeight || 'relaxed')}`}
                 />
               </div>
             ))}
