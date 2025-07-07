@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, List, Type } from 'lucide-react'
 import { HeaderInfo } from '@/types/question-paper'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 interface HeaderInfoFormProps {
   headerInfo: HeaderInfo
@@ -27,6 +28,8 @@ export function HeaderInfoForm({
   ]
 
   const instructions = headerInfo.instructions || defaultInstructions
+  const instructionType = headerInfo.instructionType || 'list'
+  const oneLineInstruction = headerInfo.oneLineInstruction || ''
 
   const addInstruction = () => {
     const newInstructions = [...instructions, '']
@@ -46,6 +49,14 @@ export function HeaderInfoForm({
 
   const resetToDefault = () => {
     setHeaderInfo({...headerInfo, instructions: defaultInstructions})
+  }
+
+  const handleInstructionTypeChange = (type: string) => {
+    setHeaderInfo({...headerInfo, instructionType: type})
+  }
+
+  const handleOneLineInstructionChange = (value: string) => {
+    setHeaderInfo({...headerInfo, oneLineInstruction: value})
   }
 
   return (
@@ -137,48 +148,101 @@ export function HeaderInfoForm({
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Instructions</CardTitle>
-              <CardDescription>Customize the instructions for your question paper</CardDescription>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={resetToDefault}>
-                Reset to Default
-              </Button>
-              <Button variant="outline" size="sm" onClick={addInstruction}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add
-              </Button>
+              <CardDescription>Choose how to display instructions on your question paper</CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {instructions.map((instruction, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 w-6">{index + 1}.</span>
-              <Input
-                value={instruction}
-                onChange={(e) => updateInstruction(index, e.target.value)}
-                placeholder="Enter instruction"
-                className="flex-1 bangla-text"
+        <CardContent className="space-y-4">
+          {/* Instruction Type Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Instruction Format</Label>
+            <RadioGroup
+              value={instructionType}
+              onValueChange={handleInstructionTypeChange}
+              className="flex space-x-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="list" id="list" />
+                <Label htmlFor="list" className="flex items-center space-x-2 cursor-pointer">
+                  <List className="h-4 w-4" />
+                  <span>Bulleted List</span>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="oneline" id="oneline" />
+                <Label htmlFor="oneline" className="flex items-center space-x-2 cursor-pointer">
+                  <Type className="h-4 w-4" />
+                  <span>One Line</span>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* One Line Instruction */}
+          {instructionType === 'oneline' && (
+            <div className="space-y-2">
+              <Label htmlFor="oneLineInstruction">Instruction Text</Label>
+              <Textarea
+                id="oneLineInstruction"
+                value={oneLineInstruction}
+                onChange={(e) => handleOneLineInstructionChange(e.target.value)}
+                placeholder="Enter your instruction here (e.g., সব প্রশ্নের উত্তর দিতে হবে এবং স্পষ্ট হাতের লেখায় লিখতে হবে।)"
+                rows={2}
+                className="bangla-text"
               />
-              {instructions.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeInstruction(index)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+              <p className="text-xs text-gray-500">
+                Write a single line instruction that will appear after "নির্দেশনা:" on your question paper
+              </p>
             </div>
-          ))}
-          {instructions.length === 0 && (
-            <div className="text-center py-4 text-gray-500">
-              <p className="text-sm">No instructions added yet</p>
-              <Button variant="outline" size="sm" onClick={addInstruction} className="mt-2">
-                <Plus className="h-4 w-4 mr-1" />
-                Add First Instruction
-              </Button>
+          )}
+
+          {/* List Instructions */}
+          {instructionType === 'list' && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-sm font-medium">Instruction Items</Label>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={resetToDefault}>
+                    Reset to Default
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={addInstruction}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </div>
+              
+              {instructions.map((instruction, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500 w-6">{index + 1}.</span>
+                  <Input
+                    value={instruction}
+                    onChange={(e) => updateInstruction(index, e.target.value)}
+                    placeholder="Enter instruction"
+                    className="flex-1 bangla-text"
+                  />
+                  {instructions.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeInstruction(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              
+              {instructions.length === 0 && (
+                <div className="text-center py-4 text-gray-500">
+                  <p className="text-sm">No instructions added yet</p>
+                  <Button variant="outline" size="sm" onClick={addInstruction} className="mt-2">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add First Instruction
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

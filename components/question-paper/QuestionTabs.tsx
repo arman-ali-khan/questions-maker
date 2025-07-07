@@ -7,7 +7,6 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { Question, HeaderInfo, PageSettings } from '@/types/question-paper'
 import { MCQQuestionCard } from './MCQQuestionCard'
 import { WrittenQuestionCard } from './WrittenQuestionCard'
-import { MCQPreviewCard } from './MCQPreviewCard'
 import { QuestionPaperPreview } from './QuestionPaperPreview'
 
 interface QuestionTabsProps {
@@ -111,38 +110,17 @@ export function QuestionTabs({
               </div>
             </div>
           ) : (
-            <>
-              {/* Edit Mode */}
-              <div className="space-y-4">
-                <div className="text-sm font-medium text-gray-700 border-b pb-2">
-                  Edit Questions:
-                </div>
-                {mcqQuestions.map((question, index) => (
-                  <MCQQuestionCard
-                    key={question.id}
-                    question={question}
-                    index={index + 1}
-                    onUpdate={updateQuestion}
-                    onDelete={deleteQuestion}
-                  />
-                ))}
-              </div>
-
-              {/* Preview Mode */}
-              <div className="space-y-4 border-t pt-6">
-                <div className="text-sm font-medium text-gray-700 border-b pb-2">
-                  Preview with Column Options:
-                </div>
-                {mcqQuestions.map((question, index) => (
-                  <MCQPreviewCard
-                    key={`preview-${question.id}`}
-                    question={question}
-                    index={index + 1}
-                    onUpdate={updateQuestion}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="space-y-4">
+              {mcqQuestions.map((question, index) => (
+                <MCQQuestionCard
+                  key={question.id}
+                  question={question}
+                  index={index + 1}
+                  onUpdate={updateQuestion}
+                  onDelete={deleteQuestion}
+                />
+              ))}
+            </div>
           )}
         </div>
       </TabsContent>

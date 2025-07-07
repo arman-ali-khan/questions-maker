@@ -17,7 +17,9 @@ export interface HeaderInfo {
   date: string
   time: string
   marks: string
-  instructions?: string[] // New field for custom instructions
+  instructions?: string[] // Field for list-style instructions
+  instructionType?: 'list' | 'oneline' // New field to choose instruction format
+  oneLineInstruction?: string // New field for one-line instruction
 }
 
 export interface PageSettings {

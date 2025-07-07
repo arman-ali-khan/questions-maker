@@ -22,7 +22,9 @@ export function useQuestionPaperEdit(paperId: string) {
       'স্পষ্ট ও সুন্দর হাতের লেখায় লিখতে হবে',
       'প্রয়োজনে আলাদা উত্তরপত্র ব্যবহার করতে হবে',
       'প্রতিটি প্রশ্ন মনোযোগ দিয়ে পড়ে উত্তর দিতে হবে'
-    ]
+    ],
+    instructionType: 'list',
+    oneLineInstruction: ''
   })
   const [pageSettings, setPageSettings] = useState<PageSettings>({
     page_size: 'A4',
@@ -82,7 +84,7 @@ export function useQuestionPaperEdit(paperId: string) {
       // Set paper data
       setTitle(paperData.title)
       
-      // Ensure instructions field exists with default values
+      // Ensure instructions field exists with default values and new fields
       const headerInfoWithInstructions = {
         ...paperData.header_info,
         instructions: paperData.header_info.instructions || [
@@ -90,7 +92,9 @@ export function useQuestionPaperEdit(paperId: string) {
           'স্পষ্ট ও সুন্দর হাতের লেখায় লিখতে হবে',
           'প্রয়োজনে আলাদা উত্তরপত্র ব্যবহার করতে হবে',
           'প্রতিটি প্রশ্ন মনোযোগ দিয়ে পড়ে উত্তর দিতে হবে'
-        ]
+        ],
+        instructionType: paperData.header_info.instructionType || 'list',
+        oneLineInstruction: paperData.header_info.oneLineInstruction || ''
       }
       
       setHeaderInfo(headerInfoWithInstructions)

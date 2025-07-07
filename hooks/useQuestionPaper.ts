@@ -23,7 +23,9 @@ export function useQuestionPaper() {
       'স্পষ্ট ও সুন্দর হাতের লেখায় লিখতে হবে',
       'প্রয়োজনে আলাদা উত্তরপত্র ব্যবহার করতে হবে',
       'প্রতিটি প্রশ্ন মনোযোগ দিয়ে পড়ে উত্তর দিতে হবে'
-    ]
+    ],
+    instructionType: 'list',
+    oneLineInstruction: ''
   })
   const [pageSettings, setPageSettings] = useState<PageSettings>({
     page_size: 'A4',
