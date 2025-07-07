@@ -59,17 +59,17 @@ export function QuestionPaperPreview({
     }
   }
 
-  // Calculate question height to determine column distribution
+  // Calculate question height to determine page breaks
   const calculateQuestionHeight = (question: Question) => {
-    let baseHeight = 60 // Base height for question text and spacing
+    let baseHeight = 80 // Base height for question text and spacing
     
     if (question.type === 'mcq' && question.options) {
       const optionsPerRow = question.columns || 1
       const totalRows = Math.ceil(question.options.length / optionsPerRow)
-      baseHeight += totalRows * 35 // Each option row takes ~35px
+      baseHeight += totalRows * 40 // Each option row takes ~40px
     } else if (question.type === 'written') {
       const lines = Math.max(4, Math.floor(question.marks / 2))
-      baseHeight += lines * 25 // Each line takes ~25px
+      baseHeight += lines * 30 // Each line takes ~30px
     }
     
     // Adjust for line height
@@ -79,29 +79,43 @@ export function QuestionPaperPreview({
     return baseHeight * lineHeightMultiplier
   }
 
-  // Split questions into two columns based on available space
-  const splitQuestionsIntoColumns = (questions: Question[]) => {
-    const leftColumn: (Question & { displayIndex: number })[] = []
-    const rightColumn: (Question & { displayIndex: number })[] = []
+  // Split questions into pages based on available space
+  const splitQuestionsIntoPages = (questions: Question[]) => {
+    const pages: (Question & { displayIndex: number })[][] = []
+    let currentPage: (Question & { displayIndex: number })[] = []
+    let currentPageHeight = 0
     
-    let leftColumnHeight = 0
-    const maxColumnHeight = 800 // Approximate max height for one column (adjustable)
+    // Calculate available height for questions (total page height minus header and instructions)
+    const headerHeight = 200 // Approximate header height
+    const instructionsHeight = 100 // Approximate instructions height
+    const maxPageHeight = 800 // Approximate max height for questions on first page
+    const maxSecondPageHeight = 900 // More space on subsequent pages (no header)
     
     questions.forEach((question, index) => {
       const questionWithIndex = { ...question, displayIndex: index + 1 }
       const questionHeight = calculateQuestionHeight(question)
       
-      // If left column has space and adding this question won't exceed limit
-      if (leftColumnHeight + questionHeight <= maxColumnHeight) {
-        leftColumn.push(questionWithIndex)
-        leftColumnHeight += questionHeight
+      // Determine max height for current page
+      const isFirstPage = pages.length === 0 && currentPage.length === 0
+      const currentMaxHeight = isFirstPage ? maxPageHeight : maxSecondPageHeight
+      
+      // If adding this question would exceed the page height, start a new page
+      if (currentPageHeight + questionHeight > currentMaxHeight && currentPage.length > 0) {
+        pages.push(currentPage)
+        currentPage = [questionWithIndex]
+        currentPageHeight = questionHeight
       } else {
-        // Move to right column
-        rightColumn.push(questionWithIndex)
+        currentPage.push(questionWithIndex)
+        currentPageHeight += questionHeight
       }
     })
     
-    return { leftColumn, rightColumn }
+    // Add the last page if it has questions
+    if (currentPage.length > 0) {
+      pages.push(currentPage)
+    }
+    
+    return pages
   }
 
   const renderQuestion = (question: Question & { displayIndex: number }, isDraggable = false) => {
@@ -166,109 +180,100 @@ export function QuestionPaperPreview({
     return <div key={question.id}>{questionContent}</div>
   }
 
-  // Split questions for two-column layout
-  const { leftColumn, rightColumn } = splitQuestionsIntoColumns(questions)
+  // Split questions into pages
+  const pages = splitQuestionsIntoPages(questions)
   
   return (
     <div className="space-y-8 bangla-text">
-      {/* Header */}
-      <div className="text-center border-b-2 border-gray-800 pb-6">
-        {headerInfo.school_name && (
-          <h1 className="text-2xl font-bold mb-3 text-gray-900 bangla-text">{headerInfo.school_name}</h1>
-        )}
-        {headerInfo.school_address && (
-          <p className="text-sm mb-4 text-gray-700 bangla-text">{headerInfo.school_address}</p>
-        )}
-        {headerInfo.exam_name && (
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 bangla-text">{headerInfo.exam_name}</h2>
-        )}
-        
-        <div className="flex justify-between items-center text-sm mt-6">
-          <div className="text-left">
-            {headerInfo.subject && <div className="mb-1 bangla-text"><strong>বিষয়:</strong> {headerInfo.subject}</div>}
-            {headerInfo.date && <div className="bangla-text"><strong>তারিখ:</strong> {headerInfo.date}</div>}
-          </div>
-          <div className="text-right">
-            {headerInfo.time && <div className="mb-1 bangla-text"><strong>সময়:</strong> {headerInfo.time}</div>}
-            <div className="bangla-text"><strong>পূর্ণমান:</strong> {headerInfo.marks || totalMarks}</div>
-          </div>
-        </div>
-      </div>
+      {pages.map((pageQuestions, pageIndex) => (
+        <div key={pageIndex} className={pageIndex > 0 ? 'page-break-before' : ''}>
+          {/* Header - only show on first page */}
+          {pageIndex === 0 && (
+            <>
+              <div className="text-center border-b-2 border-gray-800 pb-6">
+                {headerInfo.school_name && (
+                  <h1 className="text-2xl font-bold mb-3 text-gray-900 bangla-text">{headerInfo.school_name}</h1>
+                )}
+                {headerInfo.school_address && (
+                  <p className="text-sm mb-4 text-gray-700 bangla-text">{headerInfo.school_address}</p>
+                )}
+                {headerInfo.exam_name && (
+                  <h2 className="text-xl font-semibold mb-4 text-gray-900 bangla-text">{headerInfo.exam_name}</h2>
+                )}
+                
+                <div className="flex justify-between items-center text-sm mt-6">
+                  <div className="text-left">
+                    {headerInfo.subject && <div className="mb-1 bangla-text"><strong>বিষয়:</strong> {headerInfo.subject}</div>}
+                    {headerInfo.date && <div className="bangla-text"><strong>তারিখ:</strong> {headerInfo.date}</div>}
+                  </div>
+                  <div className="text-right">
+                    {headerInfo.time && <div className="mb-1 bangla-text"><strong>সময়:</strong> {headerInfo.time}</div>}
+                    <div className="bangla-text"><strong>পূর্ণমান:</strong> {headerInfo.marks || totalMarks}</div>
+                  </div>
+                </div>
+              </div>
 
-      {/* Instructions */}
-      <div className="text-sm flex gap-2">
-        <p className="font-semibold mb-2 bangla-text w-36">বিশেষ দ্রষ্টব্য:- </p>
-        
-        {instructionType === 'oneline' ? (
-          // One line instruction
-          <p className="text-gray-700 bangla-text leading-relaxed">
-            {oneLineInstruction || 'সব প্রশ্নের উত্তর দিতে হবে এবং স্পষ্ট হাতের লেখায় লিখতে হবে।'}
-          </p>
-        ) : (
-          // List instructions
-          <ul className="list-disc list-inside space-y-1 text-gray-700">
-            {instructions.map((instruction, index) => (
-              <li key={index} className="bangla-text">{instruction}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+              {/* Instructions */}
+              <div className="text-sm flex gap-2">
+                <p className="font-semibold mb-2 bangla-text w-36">বিশেষ দ্রষ্টব্য:- </p>
+                
+                {instructionType === 'oneline' ? (
+                  // One line instruction
+                  <p className="text-gray-700 bangla-text leading-relaxed">
+                    {oneLineInstruction || 'সব প্রশ্নের উত্তর দিতে হবে এবং স্পষ্ট হাতের লেখায় লিখতে হবে।'}
+                  </p>
+                ) : (
+                  // List instructions
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {instructions.map((instruction, index) => (
+                      <li key={index} className="bangla-text">{instruction}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
 
-      {/* Questions in Two-Column Layout */}
-      {questions.length > 0 ? (
-        <div className="space-y-0">
-          {isDragMode && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-700 text-sm font-medium mb-2">🔄 Drag Mode Active</p>
-              <p className="text-blue-600 text-xs">Click and drag any question to reorder them. The changes will be applied to your question paper.</p>
+          {/* Page header for subsequent pages */}
+          {pageIndex > 0 && (
+            <div className="text-center border-b-2 border-gray-800 pb-6 mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 bangla-text">
+                {headerInfo.subject || title} - পৃষ্ঠা {pageIndex + 1}
+              </h2>
+              <p className="text-sm text-gray-600 mt-2 bangla-text">প্রশ্নপত্রের ধারাবাহিকতা</p>
             </div>
           )}
-          
-          {isDragMode ? (
-            // Single column for drag mode (easier to manage)
-            <div className="space-y-4">
-              {questions.map((question, index) => 
-                renderQuestion({ ...question, displayIndex: index + 1 }, true)
-              )}
-            </div>
-          ) : (
-            // Two-column layout for normal preview
-            <div className="grid grid-cols-2 gap-8">
-              {/* Left Column */}
+
+          {/* Questions for this page */}
+          <div className="space-y-0">
+            {isDragMode ? (
+              // Single column for drag mode (easier to manage)
+              <div className="space-y-4">
+                {pageQuestions.map((question) => 
+                  renderQuestion(question, true)
+                )}
+              </div>
+            ) : (
+              // Normal layout for questions
               <div className="space-y-0">
-                <div className="text-xs text-gray-500 mb-4 text-center border-b pb-2">
-                  বাম কলাম
-                  {leftColumn.length > 0 && (
-                    <span className="ml-2">
-                      (প্রশ্ন {leftColumn[0].displayIndex}
-                      {leftColumn.length > 1 && ` - ${leftColumn[leftColumn.length - 1].displayIndex}`})
-                    </span>
-                  )}
-                </div>
-                {leftColumn.map((question) => 
+                {pageQuestions.map((question) => 
                   renderQuestion(question, false)
                 )}
               </div>
-              
-              {/* Right Column */}
-              <div className="space-y-0">
-                <div className="text-xs text-gray-500 mb-4 text-center border-b pb-2">
-                  ডান কলাম
-                  {rightColumn.length > 0 && (
-                    <span className="ml-2">
-                      (প্রশ্ন {rightColumn[0].displayIndex}
-                      {rightColumn.length > 1 && ` - ${rightColumn[rightColumn.length - 1].displayIndex}`})
-                    </span>
-                  )}
-                </div>
-                {rightColumn.map((question) => 
-                  renderQuestion(question, false)
-                )}
-              </div>
+            )}
+          </div>
+
+          {/* Page break indicator (visual only) */}
+          {pageIndex < pages.length - 1 && !isDragMode && (
+            <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-300 text-center">
+              <p className="text-xs text-gray-500 bangla-text">পৃষ্ঠা {pageIndex + 1} শেষ - পরবর্তী পৃষ্ঠায় চলবে</p>
             </div>
           )}
         </div>
-      ) : (
+      ))}
+
+      {/* Show message if no questions */}
+      {questions.length === 0 && (
         <div className="text-center py-16 text-gray-500">
           <p className="text-lg bangla-text">এখনো কোনো প্রশ্ন যোগ করা হয়নি।</p>
           <p className="text-sm mt-2 bangla-text">প্রশ্নপত্র তৈরি করতে MCQ বা লিখিত প্রশ্ন যোগ করুন!</p>

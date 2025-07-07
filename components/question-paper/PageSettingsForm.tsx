@@ -39,6 +39,7 @@ export function PageSettingsForm({
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Language Direction</Label>
           <RadioGroup
@@ -56,6 +57,7 @@ export function PageSettingsForm({
             </div>
           </RadioGroup>
         </div>
+
         <div>
           <Label>Margins (mm)</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">

@@ -123,7 +123,7 @@ export function useQuestionPaperEdit(paperId: string) {
         marks: q.marks,
         order_index: q.order_index,
         columns: q.columns || 1,
-        lineHeight: q.line_height || 'relaxed', // Load line height setting
+        lineHeight: q.line_height || 'relaxed',
       }))
 
       setQuestions(transformedQuestions)
@@ -231,7 +231,7 @@ export function useQuestionPaperEdit(paperId: string) {
             marks: q.marks,
             order_index: q.order_index,
             columns: q.columns,
-            line_height: q.lineHeight, // Save line height setting
+            line_height: q.lineHeight,
           })))
 
         if (questionsError) throw questionsError

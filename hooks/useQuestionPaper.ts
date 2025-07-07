@@ -95,8 +95,8 @@ export function useQuestionPaper() {
       correct_answer: '',
       marks: 1,
       order_index: questions.length,
-      columns: 1, // Default to 1 column
-      lineHeight: 'relaxed', // Default line height
+      columns: 1,
+      lineHeight: 'relaxed',
     }
     setQuestions([...questions, newQuestion])
   }
@@ -108,7 +108,7 @@ export function useQuestionPaper() {
       question_text: '',
       marks: 10,
       order_index: questions.length,
-      lineHeight: 'relaxed', // Default line height
+      lineHeight: 'relaxed',
     }
     setQuestions([...questions, newQuestion])
   }
@@ -176,8 +176,8 @@ export function useQuestionPaper() {
             correct_answer: q.correct_answer,
             marks: q.marks,
             order_index: q.order_index,
-            columns: q.columns, // Save column setting
-            line_height: q.lineHeight, // Save line height setting
+            columns: q.columns,
+            line_height: q.lineHeight,
           })))
 
         if (questionsError) throw questionsError
