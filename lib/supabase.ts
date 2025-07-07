@@ -91,6 +91,7 @@ export type Database = {
           options: string[] | null
           correct_answer: string | null
           marks: number
+          columns: number
           order_index: number
           created_at: string
           updated_at: string
@@ -103,6 +104,7 @@ export type Database = {
           options?: string[] | null
           correct_answer?: string | null
           marks?: number
+          columns?: number
           order_index: number
           created_at?: string
           updated_at?: string
@@ -115,6 +117,7 @@ export type Database = {
           options?: string[] | null
           correct_answer?: string | null
           marks?: number
+          columns?: number
           order_index?: number
           created_at?: string
           updated_at?: string

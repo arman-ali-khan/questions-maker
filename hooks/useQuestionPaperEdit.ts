@@ -6,9 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import { Question, HeaderInfo, PageSettings } from '@/types/question-paper'
 
-export function useQuestionPaper() {
+export function useQuestionPaperEdit(paperId: string) {
   const [user, setUser] = useState<any>(null)
-  const [paperId, setPaperId] = useState<string>('')
   const [title, setTitle] = useState('Untitled Question Paper')
   const [headerInfo, setHeaderInfo] = useState<HeaderInfo>({
     school_name: '',
@@ -31,7 +30,7 @@ export function useQuestionPaper() {
     language_direction: 'ltr',
   })
   const [questions, setQuestions] = useState<Question[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -41,10 +40,10 @@ export function useQuestionPaper() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      createNewPaper()
+    if (user && paperId) {
+      loadPaper()
     }
-  }, [user])
+  }, [user, paperId])
 
   const checkUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -55,32 +54,84 @@ export function useQuestionPaper() {
     setUser(user)
   }
 
-  const createNewPaper = async () => {
-    if (!user) return
-
+  const loadPaper = async () => {
     try {
-      const { data, error } = await supabase
-        .from('question_papers')
-        .insert([{
-          user_id: user.id,
-          title,
-          page_size: pageSettings.page_size,
-          margins: pageSettings.margins,
-          header_info: headerInfo,
-          language_direction: pageSettings.language_direction,
-        }])
-        .select()
+      setLoading(true)
 
-      if (error) throw error
-      if (data) {
-        setPaperId(data[0].id)
+      // Load question paper
+      const { data: paperData, error: paperError } = await supabase
+        .from('question_papers')
+        .select('*')
+        .eq('id', paperId)
+        .eq('user_id', user.id)
+        .single()
+
+      if (paperError) {
+        if (paperError.code === 'PGRST116') {
+          toast({
+            title: 'Error',
+            description: 'Question paper not found or you do not have permission to edit it',
+            variant: 'destructive',
+          })
+          router.push('/dashboard')
+          return
+        }
+        throw paperError
       }
+
+      // Set paper data
+      setTitle(paperData.title)
+      
+      // Ensure instructions field exists with default values
+      const headerInfoWithInstructions = {
+        ...paperData.header_info,
+        instructions: paperData.header_info.instructions || [
+          'সব প্রশ্নের উত্তর দিতে হবে',
+          'স্পষ্ট ও সুন্দর হাতের লেখায় লিখতে হবে',
+          'প্রয়োজনে আলাদা উত্তরপত্র ব্যবহার করতে হবে',
+          'প্রতিটি প্রশ্ন মনোযোগ দিয়ে পড়ে উত্তর দিতে হবে'
+        ]
+      }
+      
+      setHeaderInfo(headerInfoWithInstructions)
+      setPageSettings({
+        page_size: paperData.page_size,
+        margins: paperData.margins,
+        language_direction: paperData.language_direction,
+      })
+
+      // Load questions
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('paper_id', paperId)
+        .order('order_index')
+
+      if (questionsError) throw questionsError
+
+      // Transform questions data
+      const transformedQuestions: Question[] = questionsData.map(q => ({
+        id: q.id,
+        type: q.type as 'mcq' | 'written',
+        question_text: q.question_text,
+        options: q.options || undefined,
+        correct_answer: q.correct_answer || undefined,
+        marks: q.marks,
+        order_index: q.order_index,
+        columns: q.columns || 1,
+      }))
+
+      setQuestions(transformedQuestions)
     } catch (error: any) {
+      console.error('Error loading paper:', error)
       toast({
         title: 'Error',
-        description: 'Failed to create question paper',
+        description: 'Failed to load question paper',
         variant: 'destructive',
       })
+      router.push('/dashboard')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -93,7 +144,7 @@ export function useQuestionPaper() {
       correct_answer: '',
       marks: 1,
       order_index: questions.length,
-      columns: 1, // Default to 1 column
+      columns: 1,
     }
     setQuestions([...questions, newQuestion])
   }
@@ -172,7 +223,7 @@ export function useQuestionPaper() {
             correct_answer: q.correct_answer,
             marks: q.marks,
             order_index: q.order_index,
-            columns: q.columns, // Save column setting
+            columns: q.columns,
           })))
 
         if (questionsError) throw questionsError
@@ -183,6 +234,7 @@ export function useQuestionPaper() {
         description: 'Question paper saved successfully',
       })
     } catch (error: any) {
+      console.error('Save error:', error)
       toast({
         title: 'Error',
         description: 'Failed to save question paper',
@@ -197,7 +249,6 @@ export function useQuestionPaper() {
 
   return {
     user,
-    paperId,
     title,
     setTitle,
     headerInfo,

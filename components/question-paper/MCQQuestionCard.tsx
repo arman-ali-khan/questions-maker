@@ -43,20 +43,21 @@ export function MCQQuestionCard({
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <span className="text-sm font-medium text-gray-500">Question {index}</span>
+              <span className="text-sm font-medium text-gray-500">প্রশ্ন {index}</span>
               <span className="text-sm text-gray-400">•</span>
               <span className="text-sm text-gray-500">MCQ</span>
             </div>
             <Textarea
               value={question.question_text}
               onChange={(e) => onUpdate(question.id, { question_text: e.target.value })}
-              placeholder="Enter your question here..."
+              placeholder="এখানে আপনার প্রশ্ন লিখুন..."
               rows={2}
+              className="question-textarea bangla-text"
             />
           </div>
           <div className="flex items-center space-x-2 ml-4">
             <div className="flex items-center space-x-2">
-              <Label htmlFor={`marks_${question.id}`} className="text-sm">Marks:</Label>
+              <Label htmlFor={`marks_${question.id}`} className="text-sm">নম্বর:</Label>
               <Input
                 id={`marks_${question.id}`}
                 type="number"
@@ -77,7 +78,7 @@ export function MCQQuestionCard({
           {/* Column Layout Selector */}
           <div className="flex items-center space-x-3 pb-3 border-b border-gray-200">
             <Columns className="h-4 w-4 text-gray-500" />
-            <Label className="text-sm font-medium">Options Layout:</Label>
+            <Label className="text-sm font-medium">বিকল্প বিন্যাস:</Label>
             <Select 
               value={(question.columns || 1).toString()} 
               onValueChange={(value) => onUpdate(question.id, { columns: parseInt(value) })}
@@ -86,9 +87,9 @@ export function MCQQuestionCard({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1 Column</SelectItem>
-                <SelectItem value="2">2 Columns</SelectItem>
-                <SelectItem value="3">3 Columns</SelectItem>
+                <SelectItem value="1">১ কলাম</SelectItem>
+                <SelectItem value="2">২ কলাম</SelectItem>
+                <SelectItem value="3">৩ কলাম</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -99,7 +100,7 @@ export function MCQQuestionCard({
               <div key={optionIndex} className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Circle className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm font-medium flex-shrink-0">{optionLabels[optionIndex]}</span>
+                  <span className="text-sm font-medium flex-shrink-0 bangla-text">{optionLabels[optionIndex]}</span>
                   <div className="flex items-center space-x-2 flex-1">
                     <input
                       type="radio"
@@ -108,7 +109,7 @@ export function MCQQuestionCard({
                       onChange={() => onUpdate(question.id, { correct_answer: optionLabels[optionIndex] })}
                       className="text-green-600 flex-shrink-0"
                     />
-                    <Label className="text-xs text-gray-500 flex-shrink-0">Correct</Label>
+                    <Label className="text-xs text-gray-500 flex-shrink-0">সঠিক</Label>
                   </div>
                 </div>
                 <Input
@@ -118,8 +119,8 @@ export function MCQQuestionCard({
                     newOptions[optionIndex] = e.target.value
                     onUpdate(question.id, { options: newOptions })
                   }}
-                  placeholder={`Option ${optionLabels[optionIndex]}`}
-                  className="w-full"
+                  placeholder={`বিকল্প ${optionLabels[optionIndex]}`}
+                  className="w-full question-input bangla-text"
                 />
               </div>
             ))}

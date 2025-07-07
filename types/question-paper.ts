@@ -17,6 +17,7 @@ export interface HeaderInfo {
   date: string
   time: string
   marks: string
+  instructions?: string[] // New field for custom instructions
 }
 
 export interface PageSettings {

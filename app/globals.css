@@ -81,11 +81,26 @@
   }
 }
 
+/* Bangla font support */
+.bangla-text {
+  font-family: 'SolaimanLipi', Arial, sans-serif;
+}
+
+/* Auto-detect Bangla text and apply font */
+*:lang(bn) {
+  font-family: 'SolaimanLipi', Arial, sans-serif;
+}
+
 /* Print styles for PDF generation */
 @media print {
   .preview-content {
     -webkit-print-color-adjust: exact;
     color-adjust: exact;
+  }
+  
+  /* Ensure Bangla font is used in print */
+  .preview-content * {
+    font-family: 'SolaimanLipi', Arial, sans-serif !important;
   }
 }
 
@@ -94,6 +109,7 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   max-width: 100%;
   overflow: hidden;
+  font-family: 'SolaimanLipi', Arial, sans-serif;
 }
 
 .preview-content h1,
@@ -101,14 +117,31 @@
 .preview-content h3 {
   margin: 0;
   padding: 0;
+  font-family: 'SolaimanLipi', Arial, sans-serif;
 }
 
 .preview-content p {
   margin: 0;
   padding: 0;
+  font-family: 'SolaimanLipi', Arial, sans-serif;
 }
 
 .preview-content ul {
   margin: 0;
   padding-left: 1.5em;
+  font-family: 'SolaimanLipi', Arial, sans-serif;
+}
+
+/* Specific styles for question text areas and inputs */
+.question-input,
+.question-textarea {
+  font-family: 'SolaimanLipi', Arial, sans-serif;
+}
+
+/* Apply to all text inputs and textareas */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  font-family: 'SolaimanLipi', Arial, sans-serif;
 }

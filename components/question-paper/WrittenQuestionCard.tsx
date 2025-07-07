@@ -27,20 +27,21 @@ export function WrittenQuestionCard({
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <span className="text-sm font-medium text-gray-500">Question {index}</span>
+              <span className="text-sm font-medium text-gray-500">প্রশ্ন {index}</span>
               <span className="text-sm text-gray-400">•</span>
-              <span className="text-sm text-gray-500">Written</span>
+              <span className="text-sm text-gray-500">লিখিত</span>
             </div>
             <Textarea
               value={question.question_text}
               onChange={(e) => onUpdate(question.id, { question_text: e.target.value })}
-              placeholder="Enter your question here..."
+              placeholder="এখানে আপনার প্রশ্ন লিখুন..."
               rows={3}
+              className="question-textarea bangla-text"
             />
           </div>
           <div className="flex items-center space-x-2 ml-4">
             <div className="flex items-center space-x-2">
-              <Label htmlFor={`marks_${question.id}`} className="text-sm">Marks:</Label>
+              <Label htmlFor={`marks_${question.id}`} className="text-sm">নম্বর:</Label>
               <Input
                 id={`marks_${question.id}`}
                 type="number"
