@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Circle, X, Columns, LineChart } from 'lucide-react'
 import { Question } from '@/types/question-paper'
 
@@ -89,43 +89,53 @@ export function MCQQuestionCard({
       <CardContent>
         <div className="space-y-4">
           {/* Layout Controls */}
-          <div className="grid grid-cols-2 gap-3 pb-3 border-b border-gray-200">
+          <div className="space-y-4 pb-3 border-b border-gray-200 flex justify-between items-center">
             {/* Column Layout Selector */}
-            <div className="flex items-center space-x-2">
-              <Columns className="h-4 w-4 text-gray-500" />
-              <Label className="text-sm font-medium">বিকল্প বিন্যাস:</Label>
-              <Select 
-                value={(question.columns || 1).toString()} 
+            <div className="space-y-2 flex items-center gap-2">
+              <div className="flex items-center space-x-2">
+                <Columns className="h-4 w-4 text-gray-500" />
+                <Label className="text-sm font-medium">বিকল্প বিন্যাস:</Label>
+              </div>
+              <RadioGroup
+                value={(question.columns || 1).toString()}
                 onValueChange={(value) => onUpdate(question.id, { columns: parseInt(value) })}
+                className="flex !mt-0 space-x-4"
               >
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">১ কলাম</SelectItem>
-                  <SelectItem value="2">২ কলাম</SelectItem>
-                  <SelectItem value="3">৩ কলাম</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="1" id={`columns-1-${question.id}`} />
+                  <Label htmlFor={`columns-1-${question.id}`} className="text-sm bangla-text">১ </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="2" id={`columns-2-${question.id}`} />
+                  <Label htmlFor={`columns-2-${question.id}`} className="text-sm bangla-text">২ </Label>
+                </div>
+              </RadioGroup>
             </div>
 
             {/* Line Height Selector */}
-            <div className="flex items-center space-x-2">
-              <LineChart className="h-4 w-4 text-gray-500" />
-              <Label className="text-sm font-medium">লাইন উচ্চতা:</Label>
-              <Select 
-                value={question.lineHeight || 'relaxed'} 
+            <div className="space-y-2 !mt-0 flex items-center gap-2">
+              <div className="flex items-center space-x-2">
+                <LineChart className="h-4 w-4 text-gray-500" />
+                <Label className="text-sm font-medium">লাইন উচ্চতা:</Label>
+              </div>
+              <RadioGroup
+                value={question.lineHeight || 'relaxed'}
                 onValueChange={(value) => onUpdate(question.id, { lineHeight: value as 'normal' | 'relaxed' | 'loose' })}
+                className="flex !mt-0 space-x-4"
               >
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="normal">সাধারণ</SelectItem>
-                  <SelectItem value="relaxed">মাঝারি</SelectItem>
-                  <SelectItem value="loose">প্রশস্ত</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="normal" id={`lineheight-normal-${question.id}`} />
+                  <Label htmlFor={`lineheight-normal-${question.id}`} className="text-sm bangla-text">সাধারণ</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="relaxed" id={`lineheight-relaxed-${question.id}`} />
+                  <Label htmlFor={`lineheight-relaxed-${question.id}`} className="text-sm bangla-text">মাঝারি</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="loose" id={`lineheight-loose-${question.id}`} />
+                  <Label htmlFor={`lineheight-loose-${question.id}`} className="text-sm bangla-text">প্রশস্ত</Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
 

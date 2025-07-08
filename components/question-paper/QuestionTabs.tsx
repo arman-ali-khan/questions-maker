@@ -310,7 +310,7 @@ export function QuestionTabs({
                   {(provided) => (
                     <div 
                       ref={previewRef}
-                      className="preview-content"
+                      className="preview-content pdf-ready"
                       {...provided.droppableProps}
                     >
                       <div ref={provided.innerRef}>
@@ -332,7 +332,7 @@ export function QuestionTabs({
             ) : (
               <div 
                 ref={previewRef}
-                className="preview-content"
+                className="preview-content pdf-ready"
               >
                 <QuestionPaperPreview 
                   headerInfo={headerInfo}

@@ -98,8 +98,11 @@ export function QuestionPaperPreview({
   // Split questions into pages based on available space and page settings
   const splitQuestionsIntoPages = (questions: Question[]) => {
     const pages: (Question & { displayIndex: number })[][] = []
-    let currentPage: (Question & { displayIndex: number })[] = []
-    let currentPageHeight = 0
+    let currentPageLeftColumn: (Question & { displayIndex: number })[] = []
+    let currentPageRightColumn: (Question & { displayIndex: number })[] = []
+    let leftColumnHeight = 0
+    let rightColumnHeight = 0
+    let isFillingLeftColumn = true
     
     const pageDimensions = getPageDimensions()
     const margins = pageSettings.margins
@@ -112,32 +115,59 @@ export function QuestionPaperPreview({
     // Calculate header and instructions height
     const headerHeight = 200 // Approximate header height
     const instructionsHeight = 100 // Approximate instructions height
-    // Account for two-column layout - each column can hold more content
-    const maxFirstPageHeight = (availableHeight - headerHeight - instructionsHeight) * 2 // Two columns
-    const maxSubsequentPageHeight = (availableHeight - 80) * 2 // Two columns, space for page header
+    // Calculate max height for each column
+    const maxFirstPageColumnHeight = availableHeight - headerHeight - instructionsHeight
+    const maxSubsequentPageColumnHeight = availableHeight - 80 // Space for page header
     
     questions.forEach((question, index) => {
       const questionWithIndex = { ...question, displayIndex: index + 1 }
       const questionHeight = calculateQuestionHeight(question)
       
       // Determine max height for current page
-      const isFirstPage = pages.length === 0 && currentPage.length === 0
-      const currentMaxHeight = isFirstPage ? maxFirstPageHeight : maxSubsequentPageHeight
+      const isFirstPage = pages.length === 0 && currentPageLeftColumn.length === 0 && currentPageRightColumn.length === 0
+      const currentMaxColumnHeight = isFirstPage ? maxFirstPageColumnHeight : maxSubsequentPageColumnHeight
       
-      // If adding this question would exceed the page height, start a new page
-      if (currentPageHeight + questionHeight > currentMaxHeight && currentPage.length > 0) {
-        pages.push(currentPage)
-        currentPage = [questionWithIndex]
-        currentPageHeight = questionHeight
+      // Try to add to left column first
+      if (isFillingLeftColumn) {
+        if (leftColumnHeight + questionHeight <= currentMaxColumnHeight) {
+          currentPageLeftColumn.push(questionWithIndex)
+          leftColumnHeight += questionHeight
+        } else {
+          // Left column is full, switch to right column
+          isFillingLeftColumn = false
+          if (rightColumnHeight + questionHeight <= currentMaxColumnHeight) {
+            currentPageRightColumn.push(questionWithIndex)
+            rightColumnHeight += questionHeight
+          } else {
+            // Both columns are full, start new page
+            pages.push([...currentPageLeftColumn, ...currentPageRightColumn])
+            currentPageLeftColumn = [questionWithIndex]
+            currentPageRightColumn = []
+            leftColumnHeight = questionHeight
+            rightColumnHeight = 0
+            isFillingLeftColumn = true
+          }
+        }
       } else {
-        currentPage.push(questionWithIndex)
-        currentPageHeight += questionHeight
+        // Filling right column
+        if (rightColumnHeight + questionHeight <= currentMaxColumnHeight) {
+          currentPageRightColumn.push(questionWithIndex)
+          rightColumnHeight += questionHeight
+        } else {
+          // Right column is full, start new page
+          pages.push([...currentPageLeftColumn, ...currentPageRightColumn])
+          currentPageLeftColumn = [questionWithIndex]
+          currentPageRightColumn = []
+          leftColumnHeight = questionHeight
+          rightColumnHeight = 0
+          isFillingLeftColumn = true
+        }
       }
     })
     
     // Add the last page if it has questions
-    if (currentPage.length > 0) {
-      pages.push(currentPage)
+    if (currentPageLeftColumn.length > 0 || currentPageRightColumn.length > 0) {
+      pages.push([...currentPageLeftColumn, ...currentPageRightColumn])
     }
     
     return pages
@@ -146,26 +176,26 @@ export function QuestionPaperPreview({
   const renderQuestion = (question: Question & { displayIndex: number }, isDraggable = false) => {
     const questionContent = (
       <div 
-        className={`space-y-3 break-inside-avoid mb-6 ${isDraggable ? 'cursor-move hover:bg-blue-50 p-3 rounded-lg border-2 border-dashed border-transparent hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md' : ''}`}
+        className={`space-y-2 break-inside-avoid mb-4 text-sm ${isDraggable ? 'cursor-move hover:bg-blue-50 p-3 rounded-lg border-2 border-dashed border-transparent hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md' : ''}`}
       >
         <div className="flex justify-start items-start">
           <div className="flex-1">
-            <p className={`font-medium text-gray-900 bangla-text ${getLineHeightClass(question.lineHeight)}`}>
-              <span className="mr-3 font-semibold">{question.displayIndex}.</span>
+            <p className={`font-medium text-gray-900 bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}>
+              <span className="mr-2 font-semibold">{question.displayIndex}.</span>
               {question.question_text || `প্রশ্ন ${question.displayIndex}`}
             </p>
           </div>
         </div>
 
         {question.type === 'mcq' && question.options && (
-          <div className="ml-6">
-            <div className={`grid gap-3 ${getColumnClass(question.columns || 1)}`}>
+          <div className="ml-4">
+            <div className={`grid gap-2 ${getColumnClass(question.columns || 1)}`}>
               {question.options.map((option, optionIndex) => (
-                <div key={optionIndex} className="flex items-start space-x-3">
-                  <span className="w-6 h-6 border-2 border-gray-600 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 bangla-text mt-0.5">
+                <div key={optionIndex} className="flex items-start space-x-2">
+                  <span className="w-5 h-5 border-2 border-gray-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 bangla-text mt-0.5">
                     {optionLabels[optionIndex]}
                   </span>
-                  <span className={`text-gray-800 break-words bangla-text ${getLineHeightClass(question.lineHeight)}`}>
+                  <span className={`text-gray-800 break-words bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}>
                     {option || `বিকল্প ${optionLabels[optionIndex]}`}
                   </span>
                 </div>
@@ -175,9 +205,9 @@ export function QuestionPaperPreview({
         )}
 
         {question.type === 'written' && (
-          <div className="ml-6 space-y-3">
-            {[...Array(Math.max(4, Math.floor(question.marks / 2)))].map((_, lineIndex) => (
-              <div key={lineIndex} className="border-b border-gray-300 h-6"></div>
+          <div className="ml-4 space-y-2">
+            {[...Array(Math.max(3, Math.floor(question.marks / 2)))].map((_, lineIndex) => (
+              <div key={lineIndex} className="border-b border-gray-300 h-5"></div>
             ))}
           </div>
         )}
@@ -216,11 +246,11 @@ export function QuestionPaperPreview({
   const pages = splitQuestionsIntoPages(questions)
   
   return (
-    <div className="space-y-8 bangla-text">
+    <div className="space-y-8 bangla-text preview-content">
       {pages.map((pageQuestions, pageIndex) => (
         <div 
           key={pageIndex} 
-          className="bg-white border border-gray-300 shadow-lg mx-auto relative"
+          className="bg-white border border-gray-300 shadow-lg mx-auto relative page-content"
           style={pageStyle}
         >
           {/* Page content with margins */}
@@ -236,7 +266,7 @@ export function QuestionPaperPreview({
               <>
                 <div className="text-center border-b-2 border-gray-800 pb-6 mb-6">
                   {headerInfo.school_name && (
-                    <h1 className="text-2xl font-bold mb-3 text-gray-900 bangla-text">{headerInfo.school_name}</h1>
+                    <h1 className="text-2xl font-bold mb-3 text-gray-900 bangla-title">{headerInfo.school_name}</h1>
                   )}
                   {headerInfo.school_address && (
                     <p className="text-sm mb-4 text-gray-700 bangla-text">{headerInfo.school_address}</p>
@@ -289,7 +319,7 @@ export function QuestionPaperPreview({
             )}
 
             {/* Questions for this page */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-8">
               {isDragMode ? (
                 // Single column for drag mode (easier to manage)
                 <div className="col-span-2 space-y-4">
@@ -298,11 +328,18 @@ export function QuestionPaperPreview({
                   )}
                 </div>
               ) : (
-                // Two-column layout for questions
+                // Two-column layout for questions with proper ordering
                 <>
-                  {pageQuestions.map((question) => 
-                    renderQuestion(question, false)
-                  )}
+                  <div className="space-y-4">
+                    {pageQuestions
+                      .filter((_, index) => index % 2 === 0)
+                      .map((question) => renderQuestion(question, false))}
+                  </div>
+                  <div className="space-y-4">
+                    {pageQuestions
+                      .filter((_, index) => index % 2 === 1)
+                      .map((question) => renderQuestion(question, false))}
+                  </div>
                 </>
               )}
             </div>
@@ -318,7 +355,7 @@ export function QuestionPaperPreview({
       {/* Show message if no questions */}
       {questions.length === 0 && (
         <div 
-          className="bg-white border border-gray-300 shadow-lg mx-auto flex items-center justify-center"
+          className="bg-white border border-gray-300 shadow-lg mx-auto flex items-center justify-center page-content"
           style={pageStyle}
         >
           <div className="text-center text-gray-500">
