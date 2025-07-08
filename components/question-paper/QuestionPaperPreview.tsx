@@ -204,18 +204,20 @@ export function QuestionPaperPreview({
 
     if (isDraggable) {
       return (
-        <Draggable key={question.id} draggableId={question.id} index={question.displayIndex - 1}>
-          {(provided, snapshot) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.draggableProps}
-              {...provided.dragHandleProps}
-              className={snapshot.isDragging ? 'opacity-75 transform rotate-2' : ''}
-            >
-              {questionContent}
-            </div>
-          )}
-        </Draggable>
+       <Draggable key={question.id} draggableId={question.id} index={question.displayIndex - 1}>
+  {(provided, snapshot) => (
+    <>
+      <div
+        ref={provided.innerRef}
+        {...provided.draggableProps}
+        {...provided.dragHandleProps}
+        className={snapshot.isDragging ? 'opacity-75 transform rotate-2' : ''}
+      >
+        {questionContent}
+      </div>
+    </>
+  )}
+</Draggable>
       )
     }
 

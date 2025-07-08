@@ -52,7 +52,7 @@ export function HeaderInfoForm({
   }
 
   const handleInstructionTypeChange = (type: string) => {
-    setHeaderInfo({...headerInfo, instructionType: type})
+    setHeaderInfo({...headerInfo, instructionType: type as 'list' | 'oneline'})
   }
 
   const handleOneLineInstructionChange = (value: string) => {

@@ -62,7 +62,6 @@ export function MCQQuestionCard({
             </div>
             <RichTextEditor
               value={question.question_text}
-              onChange={(e) => onUpdate(question.id, { question_text: e.target.value })}
               onChange={(value) => onUpdate(question.id, { question_text: value })}
               placeholder="এখানে আপনার প্রশ্ন লিখুন..."
               lineHeight={question.lineHeight || 'relaxed'}

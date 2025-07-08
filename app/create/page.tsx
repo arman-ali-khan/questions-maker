@@ -230,7 +230,7 @@ export default function CreatePaperPage() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" onClick={savePaper} disabled={saving}>
+              <Button variant="outline" onClick={() => savePaper(false)} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
                 {saving ? 'Saving...' : 'Save (Ctrl+S)'}
               </Button>
