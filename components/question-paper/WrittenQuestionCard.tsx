@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardHeader } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { X, LineChart } from 'lucide-react'
 import { Question } from '@/types/question-paper'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 interface WrittenQuestionCardProps {
   question: Question
@@ -45,12 +45,12 @@ export function WrittenQuestionCard({
               <span className="text-sm text-gray-400">•</span>
               <span className="text-sm text-gray-500">লিখিত</span>
             </div>
-            <Textarea
+            <RichTextEditor
               value={question.question_text}
-              onChange={(e) => onUpdate(question.id, { question_text: e.target.value })}
+              onChange={(value) => onUpdate(question.id, { question_text: value })}
               placeholder="এখানে আপনার প্রশ্ন লিখুন..."
-              rows={3}
-              className={`question-textarea bangla-text ${getLineHeightClass(question.lineHeight || 'relaxed')}`}
+              lineHeight={question.lineHeight || 'relaxed'}
+              className="w-full"
             />
             
             {/* Line Height Control */}

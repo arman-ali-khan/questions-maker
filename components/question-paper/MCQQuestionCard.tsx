@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Circle, X, Columns, LineChart } from 'lucide-react'
 import { Question } from '@/types/question-paper'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 interface MCQQuestionCardProps {
   question: Question
@@ -60,12 +60,13 @@ export function MCQQuestionCard({
               <span className="text-sm text-gray-400">•</span>
               <span className="text-sm text-gray-500">MCQ</span>
             </div>
-            <Textarea
+            <RichTextEditor
               value={question.question_text}
               onChange={(e) => onUpdate(question.id, { question_text: e.target.value })}
+              onChange={(value) => onUpdate(question.id, { question_text: value })}
               placeholder="এখানে আপনার প্রশ্ন লিখুন..."
-              rows={2}
-              className={`question-textarea bangla-text ${getLineHeightClass(question.lineHeight || 'relaxed')}`}
+              lineHeight={question.lineHeight || 'relaxed'}
+              className="w-full"
             />
           </div>
           <div className="flex items-center space-x-2 ml-4">

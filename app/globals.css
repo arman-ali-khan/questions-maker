@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'quill/dist/quill.snow.css';
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -203,4 +204,43 @@ textarea {
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
   text-rendering: optimizeLegibility !important;
+}
+
+/* HTML content styling in preview */
+.preview-content p {
+  margin: 0.5em 0;
+}
+
+.preview-content strong {
+  font-weight: 600;
+}
+
+.preview-content em {
+  font-style: italic;
+}
+
+.preview-content u {
+  text-decoration: underline;
+}
+
+.preview-content s {
+  text-decoration: line-through;
+}
+
+.preview-content ol,
+.preview-content ul {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.preview-content blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  margin: 0.5em 0;
+  font-style: italic;
+}
+
+.preview-content h1, .preview-content h2, .preview-content h3 {
+  font-weight: 600;
+  margin: 0.5em 0;
 }

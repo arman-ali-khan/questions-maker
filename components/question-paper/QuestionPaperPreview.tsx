@@ -98,11 +98,8 @@ export function QuestionPaperPreview({
   // Split questions into pages based on available space and page settings
   const splitQuestionsIntoPages = (questions: Question[]) => {
     const pages: (Question & { displayIndex: number })[][] = []
-    let currentPageLeftColumn: (Question & { displayIndex: number })[] = []
-    let currentPageRightColumn: (Question & { displayIndex: number })[] = []
-    let leftColumnHeight = 0
-    let rightColumnHeight = 0
-    let isFillingLeftColumn = true
+    let currentPageQuestions: (Question & { displayIndex: number })[] = []
+    let currentPageHeight = 0
     
     const pageDimensions = getPageDimensions()
     const margins = pageSettings.margins
@@ -115,59 +112,35 @@ export function QuestionPaperPreview({
     // Calculate header and instructions height
     const headerHeight = 200 // Approximate header height
     const instructionsHeight = 100 // Approximate instructions height
-    // Calculate max height for each column
-    const maxFirstPageColumnHeight = availableHeight - headerHeight - instructionsHeight
-    const maxSubsequentPageColumnHeight = availableHeight - 80 // Space for page header
+    // Calculate max height for content
+    const maxFirstPageHeight = availableHeight - headerHeight - instructionsHeight
+    const maxSubsequentPageHeight = availableHeight - 80 // Space for page header
     
     questions.forEach((question, index) => {
       const questionWithIndex = { ...question, displayIndex: index + 1 }
       const questionHeight = calculateQuestionHeight(question)
       
       // Determine max height for current page
-      const isFirstPage = pages.length === 0 && currentPageLeftColumn.length === 0 && currentPageRightColumn.length === 0
-      const currentMaxColumnHeight = isFirstPage ? maxFirstPageColumnHeight : maxSubsequentPageColumnHeight
+      const isFirstPage = pages.length === 0 && currentPageQuestions.length === 0
+      const currentMaxPageHeight = isFirstPage ? maxFirstPageHeight : maxSubsequentPageHeight
       
-      // Try to add to left column first
-      if (isFillingLeftColumn) {
-        if (leftColumnHeight + questionHeight <= currentMaxColumnHeight) {
-          currentPageLeftColumn.push(questionWithIndex)
-          leftColumnHeight += questionHeight
-        } else {
-          // Left column is full, switch to right column
-          isFillingLeftColumn = false
-          if (rightColumnHeight + questionHeight <= currentMaxColumnHeight) {
-            currentPageRightColumn.push(questionWithIndex)
-            rightColumnHeight += questionHeight
-          } else {
-            // Both columns are full, start new page
-            pages.push([...currentPageLeftColumn, ...currentPageRightColumn])
-            currentPageLeftColumn = [questionWithIndex]
-            currentPageRightColumn = []
-            leftColumnHeight = questionHeight
-            rightColumnHeight = 0
-            isFillingLeftColumn = true
-          }
-        }
+      // Check if question fits on current page
+      if (currentPageHeight + questionHeight <= currentMaxPageHeight) {
+        currentPageQuestions.push(questionWithIndex)
+        currentPageHeight += questionHeight
       } else {
-        // Filling right column
-        if (rightColumnHeight + questionHeight <= currentMaxColumnHeight) {
-          currentPageRightColumn.push(questionWithIndex)
-          rightColumnHeight += questionHeight
-        } else {
-          // Right column is full, start new page
-          pages.push([...currentPageLeftColumn, ...currentPageRightColumn])
-          currentPageLeftColumn = [questionWithIndex]
-          currentPageRightColumn = []
-          leftColumnHeight = questionHeight
-          rightColumnHeight = 0
-          isFillingLeftColumn = true
+        // Current page is full, start new page
+        if (currentPageQuestions.length > 0) {
+          pages.push(currentPageQuestions)
         }
+        currentPageQuestions = [questionWithIndex]
+        currentPageHeight = questionHeight
       }
     })
     
     // Add the last page if it has questions
-    if (currentPageLeftColumn.length > 0 || currentPageRightColumn.length > 0) {
-      pages.push([...currentPageLeftColumn, ...currentPageRightColumn])
+    if (currentPageQuestions.length > 0) {
+      pages.push(currentPageQuestions)
     }
     
     return pages
@@ -180,10 +153,17 @@ export function QuestionPaperPreview({
       >
         <div className="flex justify-start items-start">
           <div className="flex-1">
-            <p className={`font-medium text-gray-900 bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}>
+            <div 
+              className={`font-medium text-gray-900 bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}
+              dangerouslySetInnerHTML={{
+                __html: `<span class="mr-2 font-semibold">${question.displayIndex}.</span>${question.question_text || `প্রশ্ন ${question.displayIndex}`}`
+              }}
+            />
+            {/* Fallback for empty content */}
+            {!question.question_text && (
               <span className="mr-2 font-semibold">{question.displayIndex}.</span>
-              {question.question_text || `প্রশ্ন ${question.displayIndex}`}
-            </p>
+              {`প্রশ্ন ${question.displayIndex}`}
+            )}
           </div>
         </div>
 
@@ -195,9 +175,15 @@ export function QuestionPaperPreview({
                   <span className="w-5 h-5 border-2 border-gray-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 bangla-text mt-0.5">
                     {optionLabels[optionIndex]}
                   </span>
-                  <span className={`text-gray-800 break-words bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}>
-                    {option || `বিকল্প ${optionLabels[optionIndex]}`}
-                  </span>
+                  <div 
+                    className={`text-gray-800 break-words bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}
+                    dangerouslySetInnerHTML={{
+                      __html: option || `বিকল্প ${optionLabels[optionIndex]}`
+                    }}
+                  />
+                  {!option && (
+                    `বিকল্প ${optionLabels[optionIndex]}`
+                  )}
                 </div>
               ))}
             </div>
@@ -319,7 +305,7 @@ export function QuestionPaperPreview({
             )}
 
             {/* Questions for this page */}
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-6">
               {isDragMode ? (
                 // Single column for drag mode (easier to manage)
                 <div className="col-span-2 space-y-4">
@@ -332,12 +318,12 @@ export function QuestionPaperPreview({
                 <>
                   <div className="space-y-4">
                     {pageQuestions
-                      .filter((_, index) => index % 2 === 0)
+                      .slice(0, Math.ceil(pageQuestions.length / 2))
                       .map((question) => renderQuestion(question, false))}
                   </div>
                   <div className="space-y-4">
                     {pageQuestions
-                      .filter((_, index) => index % 2 === 1)
+                      .slice(Math.ceil(pageQuestions.length / 2))
                       .map((question) => renderQuestion(question, false))}
                   </div>
                 </>
