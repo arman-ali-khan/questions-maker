@@ -99,7 +99,7 @@ export function QuestionTabs({
           </Button>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-6 ">
           {mcqQuestions.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               <div className="text-gray-500">
@@ -113,7 +113,7 @@ export function QuestionTabs({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col-reverse">
               {mcqQuestions.map((question, index) => (
                 <MCQQuestionCard
                   key={question.id}
@@ -310,17 +310,7 @@ export function QuestionTabs({
                   {(provided) => (
                     <div 
                       ref={previewRef}
-                      className="preview-content mx-auto bg-white"
-                      style={{
-                        width: getPageDimensions().width,
-                        minHeight: getPageDimensions().height,
-                        padding: `${pageSettings.margins.top}mm ${pageSettings.margins.right}mm ${pageSettings.margins.bottom}mm ${pageSettings.margins.left}mm`,
-                        direction: pageSettings.language_direction === 'rtl' ? 'rtl' : 'ltr',
-                        fontFamily: 'Arial, sans-serif',
-                        fontSize: '14px',
-                        lineHeight: '1.6',
-                        color: '#000',
-                      }}
+                      className="preview-content"
                       {...provided.droppableProps}
                     >
                       <div ref={provided.innerRef}>
@@ -329,6 +319,7 @@ export function QuestionTabs({
                           questions={questions}
                           title={title}
                           totalMarks={totalMarks}
+                          pageSettings={pageSettings}
                           isDragMode={true}
                           onDragEnd={handleDragEnd}
                         />
@@ -341,23 +332,14 @@ export function QuestionTabs({
             ) : (
               <div 
                 ref={previewRef}
-                className="preview-content mx-auto bg-white"
-                style={{
-                  width: getPageDimensions().width,
-                  minHeight: getPageDimensions().height,
-                  padding: `${pageSettings.margins.top}mm ${pageSettings.margins.right}mm ${pageSettings.margins.bottom}mm ${pageSettings.margins.left}mm`,
-                  direction: pageSettings.language_direction === 'rtl' ? 'rtl' : 'ltr',
-                  fontFamily: 'Arial, sans-serif',
-                  fontSize: '14px',
-                  lineHeight: '1.6',
-                  color: '#000',
-                }}
+                className="preview-content"
               >
                 <QuestionPaperPreview 
                   headerInfo={headerInfo}
                   questions={questions}
                   title={title}
                   totalMarks={totalMarks}
+                  pageSettings={pageSettings}
                 />
               </div>
             )}

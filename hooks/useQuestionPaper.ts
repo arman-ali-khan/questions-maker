@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
@@ -35,6 +35,9 @@ export function useQuestionPaper() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -48,6 +51,50 @@ export function useQuestionPaper() {
     }
   }, [user])
 
+  // Auto-save functionality
+  const triggerAutoSave = useCallback(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+    
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      if (hasUnsavedChanges && paperId) {
+        savePaper(true) // true indicates auto-save
+      }
+    }, 10000) // 10 seconds
+  }, [hasUnsavedChanges, paperId])
+
+  // Mark as having unsaved changes and trigger auto-save
+  const markAsChanged = useCallback(() => {
+    setHasUnsavedChanges(true)
+    triggerAutoSave()
+  }, [triggerAutoSave])
+
+  // Keyboard shortcut for Ctrl+S
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault()
+        if (paperId) {
+          savePaper()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [paperId])
+
+  // Cleanup auto-save timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+    }
+  }, [])
   const checkUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) {
@@ -76,6 +123,7 @@ export function useQuestionPaper() {
       if (error) throw error
       if (data) {
         setPaperId(data[0].id)
+        setLastSaved(new Date())
       }
     } catch (error: any) {
       toast({
@@ -86,6 +134,23 @@ export function useQuestionPaper() {
     }
   }
 
+  // Enhanced setTitle with change tracking
+  const setTitleWithTracking = (newTitle: string) => {
+    setTitle(newTitle)
+    markAsChanged()
+  }
+
+  // Enhanced setHeaderInfo with change tracking
+  const setHeaderInfoWithTracking = (newHeaderInfo: HeaderInfo) => {
+    setHeaderInfo(newHeaderInfo)
+    markAsChanged()
+  }
+
+  // Enhanced setPageSettings with change tracking
+  const setPageSettingsWithTracking = (newPageSettings: PageSettings) => {
+    setPageSettings(newPageSettings)
+    markAsChanged()
+  }
   const addMCQQuestion = () => {
     const newQuestion: Question = {
       id: `mcq_${Date.now()}`,
@@ -99,6 +164,7 @@ export function useQuestionPaper() {
       lineHeight: 'relaxed',
     }
     setQuestions([...questions, newQuestion])
+    markAsChanged()
   }
 
   const addWrittenQuestion = () => {
@@ -111,16 +177,19 @@ export function useQuestionPaper() {
       lineHeight: 'relaxed',
     }
     setQuestions([...questions, newQuestion])
+    markAsChanged()
   }
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
     setQuestions(questions.map(q => 
       q.id === id ? { ...q, ...updates } : q
     ))
+    markAsChanged()
   }
 
   const deleteQuestion = (id: string) => {
     setQuestions(questions.filter(q => q.id !== id))
+    markAsChanged()
   }
 
   const handleDragEnd = (result: any) => {
@@ -136,9 +205,10 @@ export function useQuestionPaper() {
     }))
 
     setQuestions(updatedQuestions)
+    markAsChanged()
   }
 
-  const savePaper = async () => {
+  const savePaper = async (isAutoSave = false) => {
     if (!paperId || !user) return
 
     setSaving(true)
@@ -183,10 +253,20 @@ export function useQuestionPaper() {
         if (questionsError) throw questionsError
       }
 
-      toast({
-        title: 'Success',
-        description: 'Question paper saved successfully',
-      })
+      setHasUnsavedChanges(false)
+      setLastSaved(new Date())
+      
+      // Clear auto-save timeout since we just saved
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+        autoSaveTimeoutRef.current = null
+      }
+      if (!isAutoSave) {
+        toast({
+          title: 'Success',
+          description: 'Question paper saved successfully',
+        })
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -204,15 +284,17 @@ export function useQuestionPaper() {
     user,
     paperId,
     title,
-    setTitle,
+    setTitle: setTitleWithTracking,
     headerInfo,
-    setHeaderInfo,
+    setHeaderInfo: setHeaderInfoWithTracking,
     pageSettings,
-    setPageSettings,
+    setPageSettings: setPageSettingsWithTracking,
     questions,
     setQuestions,
     loading,
     saving,
+    hasUnsavedChanges,
+    lastSaved,
     addMCQQuestion,
     addWrittenQuestion,
     updateQuestion,

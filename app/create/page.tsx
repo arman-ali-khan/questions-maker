@@ -25,6 +25,8 @@ export default function CreatePaperPage() {
     setPageSettings,
     questions,
     saving,
+    hasUnsavedChanges,
+    lastSaved,
     addMCQQuestion,
     addWrittenQuestion,
     updateQuestion,
@@ -40,6 +42,17 @@ export default function CreatePaperPage() {
     downloadPDF(previewRef, title, pageSettings)
   }
 
+  // Format last saved time
+  const formatLastSaved = (date: Date | null) => {
+    if (!date) return ''
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+    return date.toLocaleDateString()
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
@@ -55,11 +68,26 @@ export default function CreatePaperPage() {
                 className="font-medium text-lg border-none shadow-none focus:ring-0 px-0"
                 placeholder="Question Paper Title"
               />
+              {/* Save status indicator */}
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                {hasUnsavedChanges && (
+                  <span className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span>Unsaved changes</span>
+                  </span>
+                )}
+                {!hasUnsavedChanges && lastSaved && (
+                  <span className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Saved {formatLastSaved(lastSaved)}</span>
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" onClick={savePaper} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? 'Saving...' : 'Save (Ctrl+S)'}
               </Button>
               <Button 
                 onClick={handleDownloadPDF} 
