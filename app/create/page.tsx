@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useReactToPrint } from 'react-to-print'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowLeft, Save, Download } from 'lucide-react'
@@ -10,11 +11,13 @@ import { usePDFDownload } from '@/hooks/usePDFDownload'
 import { QuestionTabs } from '@/components/question-paper/QuestionTabs'
 import { HeaderInfoForm } from '@/components/question-paper/HeaderInfoForm'
 import { PageSettingsForm } from '@/components/question-paper/PageSettingsForm'
+import { useToast } from '@/hooks/use-toast'
 
 export default function CreatePaperPage() {
   const [activeTab, setActiveTab] = useState('mcq')
   const previewRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const { toast } = useToast()
 
   const {
     title,
@@ -42,40 +45,44 @@ export default function CreatePaperPage() {
     downloadPDF(previewRef, title, pageSettings)
   }
 
-  const handlePrint = () => {
-    // Add print styles to the current document
-    const printStyles = document.createElement('style')
-    printStyles.id = 'print-styles'
-    printStyles.textContent = `
+  const handlePrint = useReactToPrint({
+    content: () => previewRef.current,
+    documentTitle: title || 'Question Paper',
+    onBeforeGetContent: () => {
+      return new Promise((resolve) => {
+        // Wait for fonts to load
+        document.fonts.ready.then(() => {
+          setTimeout(resolve, 500)
+        })
+      })
+    },
+    onPrintError: (error) => {
+      console.error('Print error:', error)
+      toast({
+        title: 'Print Error',
+        description: 'Failed to print the document. Please try again.',
+        variant: 'destructive',
+      })
+    },
+    pageStyle: `
+      @page {
+        margin: 0;
+        size: A4;
+      }
+      
       @media print {
-        /* Hide everything except preview content */
-        body * {
-          visibility: hidden;
-        }
-        
-        .preview-content, .preview-content * {
-          visibility: visible;
-        }
-        
-        .preview-content {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
+        body {
           font-family: "Noto Serif Bengali", serif !important;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+          print-color-adjust: exact;
         }
         
-        .preview-content * {
+        * {
           font-family: "Noto Serif Bengali", serif !important;
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
           text-rendering: optimizeLegibility !important;
-        }
-        
-        /* Page settings */
-        @page {
-          margin: 0;
-          size: A4;
         }
         
         /* Preserve spacing */
@@ -148,7 +155,7 @@ export default function CreatePaperPage() {
         .h-5 { height: 1.25rem !important; }
         .rounded-full { border-radius: 9999px !important; }
         .flex-shrink-0 { flex-shrink: 0 !important; }
-        .mt-0\.5 { margin-top: 0.125rem !important; }
+        .mt-0\\.5 { margin-top: 0.125rem !important; }
         .break-words { word-wrap: break-word !important; }
         .flex-1 { flex: 1 1 0% !important; }
         .break-inside-avoid { break-inside: avoid !important; }
@@ -157,10 +164,7 @@ export default function CreatePaperPage() {
         .list-disc { list-style-type: disc !important; }
         .list-inside { list-style-position: inside !important; }
         
-        /* Hide page numbers and other print elements */
-        .absolute { display: none !important; }
-        
-        /* Ensure proper page breaks */
+        /* Page breaks */
         .page-content {
           page-break-after: always;
           box-shadow: none !important;
@@ -170,23 +174,20 @@ export default function CreatePaperPage() {
         .page-content:last-child {
           page-break-after: auto;
         }
+        
+        /* Hide elements that shouldn't print */
+        .absolute {
+          display: none !important;
+        }
+        
+        /* Ensure proper styling for Bangla text */
+        .bangla-text, .bangla-title {
+          font-family: "Noto Serif Bengali", serif !important;
+        }
       }
-    `
-    
-    // Add styles to document head
-    document.head.appendChild(printStyles)
-    
-    // Trigger print
-    window.print()
-    
-    // Clean up styles after printing
-    setTimeout(() => {
-      const existingStyles = document.getElementById('print-styles')
-      if (existingStyles) {
-        existingStyles.remove()
-      }
-    }, 1000)
-  }
+    `,
+  })
+
   // Format last saved time
   const formatLastSaved = (date: Date | null) => {
     if (!date) return ''
