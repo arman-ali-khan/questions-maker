@@ -150,19 +150,21 @@ export function QuestionPaperPreview({
     const questionContent = (
       <div 
         className={`space-y-2 break-inside-avoid mb-4 text-sm ${isDraggable ? 'cursor-move hover:bg-blue-50 p-3 rounded-lg border-2 border-dashed border-transparent hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md' : ''}`}
-      >
+      > 
         <div className="flex justify-start items-start">
           <div className="flex-1">
             <div 
               className={`font-medium text-gray-900 bangla-text text-sm ${getLineHeightClass(question.lineHeight)}`}
               dangerouslySetInnerHTML={{
-                __html: `<span class="mr-2 font-semibold">${question.displayIndex}.</span>${question.question_text || `প্রশ্ন ${question.displayIndex}`}`
+                __html: `<span class="mr-2 float-left font-semibold">${question.displayIndex}.</span>${question.question_text || `প্রশ্ন ${question.displayIndex}`}`
               }}
             />
             {/* Fallback for empty content */}
             {!question.question_text && (
-              <span className="mr-2 font-semibold">{question.displayIndex}.</span>
-              {`প্রশ্ন ${question.displayIndex}`}
+              <>
+                <span className="mr-2 font-semibold">{question.displayIndex}.</span>
+                {`প্রশ্ন ${question.displayIndex}`}
+              </>
             )}
           </div>
         </div>
@@ -172,7 +174,7 @@ export function QuestionPaperPreview({
             <div className={`grid gap-2 ${getColumnClass(question.columns || 1)}`}>
               {question.options.map((option, optionIndex) => (
                 <div key={optionIndex} className="flex items-start space-x-2">
-                  <span className="w-5 h-5 border-2 border-gray-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 bangla-text mt-0.5">
+                  <span className="w-5 h-5 border-2 border-gray-800 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 bangla-text flex justify-center items-center">
                     {optionLabels[optionIndex]}
                   </span>
                   <div 
