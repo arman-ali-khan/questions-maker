@@ -1,83 +1,65 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vcczqoxflnuiveqgpbgn.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjY3pxb3hmbG51aXZlcWdwYmduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NTk2NTAsImV4cCI6MjA2NzQzNTY1MH0.X6QZ-Ve8o1GnZj4yt00Evv2PNYYPkgRqw3gW5R0BkmM'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 export type Database = {
   public: {
     Tables: {
-      question_papers: {
+      exam_settings: {
         Row: {
           id: string
           user_id: string
-          title: string
+          school_name: string
+          exam_time: string
+          total_marks: string
+          instructions: string
           page_size: string
-          margins: {
-            top: number
-            right: number
-            bottom: number
-            left: number
-          }
-          header_info: {
-            school_name: string
-            school_address: string
-            exam_name: string
-            subject: string
-            date: string
-            time: string
-            marks: string
-          }
-          language_direction: string
+          margin_top: string
+          margin_bottom: string
+          margin_left: string
+          margin_right: string
+          font_family: string
+          font_size: string
+          exam_type: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          title: string
+          school_name?: string
+          exam_time?: string
+          total_marks?: string
+          instructions?: string
           page_size?: string
-          margins?: {
-            top: number
-            right: number
-            bottom: number
-            left: number
-          }
-          header_info?: {
-            school_name: string
-            school_address: string
-            exam_name: string
-            subject: string
-            date: string
-            time: string
-            marks: string
-          }
-          language_direction?: string
+          margin_top?: string
+          margin_bottom?: string
+          margin_left?: string
+          margin_right?: string
+          font_family?: string
+          font_size?: string
+          exam_type?: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          title?: string
+          school_name?: string
+          exam_time?: string
+          total_marks?: string
+          instructions?: string
           page_size?: string
-          margins?: {
-            top: number
-            right: number
-            bottom: number
-            left: number
-          }
-          header_info?: {
-            school_name: string
-            school_address: string
-            exam_name: string
-            subject: string
-            date: string
-            time: string
-            marks: string
-          }
-          language_direction?: string
+          margin_top?: string
+          margin_bottom?: string
+          margin_left?: string
+          margin_right?: string
+          font_family?: string
+          font_size?: string
+          exam_type?: string
           created_at?: string
           updated_at?: string
         }
@@ -85,53 +67,47 @@ export type Database = {
       questions: {
         Row: {
           id: string
-          paper_id: string
-          type: string
+          user_id: string
+          subject: string
+          question_no: number
           question_text: string
-          options: string[] | null
-          correct_answer: string | null
-          marks: number
-          columns: number
-          order_index: number
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          correct_answer: string
+          question_set: string | null
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
-          paper_id: string
-          type: string
+          user_id: string
+          subject: string
+          question_no: number
           question_text: string
-          options?: string[] | null
-          correct_answer?: string | null
-          marks?: number
-          columns?: number
-          order_index: number
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          correct_answer: string
+          question_set?: string | null
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
-          paper_id?: string
-          type?: string
+          user_id?: string
+          subject?: string
+          question_no?: number
           question_text?: string
-          options?: string[] | null
-          correct_answer?: string | null
-          marks?: number
-          columns?: number
-          order_index?: number
+          option_a?: string
+          option_b?: string
+          option_c?: string
+          option_d?: string
+          correct_answer?: string
+          question_set?: string | null
           created_at?: string
-          updated_at?: string
         }
       }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
     }
   }
 }

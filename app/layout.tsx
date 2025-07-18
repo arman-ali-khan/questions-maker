@@ -1,13 +1,13 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Question Paper Creator',
-  description: 'Create professional question papers with ease',
+  title: 'প্রশ্ন প্রণেতা - Question Builder',
+  description: 'Bangladeshi School Question Builder Application',
 };
 
 export default function RootLayout({
@@ -18,10 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-     <link rel="preconnect" href="https://fonts.googleapis.com"/>
- <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-       <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet"/>
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@100..900&family=Tiro+Bangla&display=swap" rel="stylesheet"/>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className={inter.className}>
         {children}
